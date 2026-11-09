@@ -1,0 +1,28 @@
+
+name: Generate Unit Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number"
+        required: true
+        type: string
+
+jobs:
+  generate-tests:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Confirm PR input
+        run: |
+          echo "Unit test generation requested"
+          echo "PR number: ${{ inputs.pr_number }}"
+          echo "Running on GitHub-hosted Ubuntu"
