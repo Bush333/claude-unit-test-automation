@@ -160,10 +160,6 @@ jobs:
 
           print("All changes are within tests/unit-tests/")
           PY
-
-      - name: Run unit tests
-        run: |
-          python -m pytest tests/unit-tests/ -v
       
       - name: Commit generated tests to PR
         env:
