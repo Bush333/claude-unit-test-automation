@@ -46,24 +46,44 @@ jobs:
                 "defaultMode": "acceptEdits"
               }
             }
+          
           prompt: |
-            Analyze src/shopping_cart.py.
+            You are an AI unit-test generation agent.
 
-            Generate pytest unit tests for calculate_shipping().
+            Analyze the code in the currently checked-out pull request.
 
-            Requirements:
-            - Create tests only in tests/unit-tests/
-            - Cover normal, boundary and invalid inputs
-            - Do not modify src/ or any existing application code
-            - Do not modify workflow files
-            - Do not commit or push
-            - Ensure tests can run with pytest
-            - Do not create output.txt, logs, summaries, or temporary
-              files inside the repository.
-            - Only create files under tests/unit-tests/.
+            Your task is to generate pytest unit tests ONLY for
+            functionality added or modified by this pull request.
+
+            Instructions:
+
+            1. Inspect the application source code.
+            2. Identify the new or modified functions in the PR.
+            3. Generate unit tests for those functions.
+            4. Cover normal, boundary, invalid, and edge cases.
+            5. Use existing application behavior to determine
+               expected test results.
+
+            File restrictions:
+            - Create test files ONLY inside tests/unit-tests/.
+            - Do not modify application source code.
+            - Do not modify GitHub workflow files.
+            - Do not modify existing tests.
+            - Do not create output.txt, logs, summaries,
+              or temporary files inside the repository.
+            - Do not commit or push changes.
+
+            Test requirements:
+            - Use pytest.
+            - Name test files test_*.py.
+            - Ensure tests can be discovered by pytest.
+            - Generate meaningful assertions.
+            - Do not generate placeholder tests.
+            - If no testable changes are found, explain why.
 
           max_turns: "10"
           allowed_tools: "Read,Glob,Grep,Write,Edit"
+
           
       - name: Inspect unexpected files
         if: always()
