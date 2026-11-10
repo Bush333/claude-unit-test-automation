@@ -21,11 +21,11 @@ jobs:
       pull-requests: read
       actions: write
 
-    steps:
-      - name: Checkout PR code
+    steps:    
+      - name: Checkout PR
         uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ inputs.pr_number }}/head
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/pull/{0}/head', inputs.pr_number) || github.sha }}
           persist-credentials: false
 
       - name: Set up Python
