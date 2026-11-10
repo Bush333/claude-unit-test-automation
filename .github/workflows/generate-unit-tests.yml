@@ -258,6 +258,18 @@ jobs:
 
           print(f"Updated PR #{pr_number}")
           PY
+      
+      - name: Trigger unit test checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: |
+          gh workflow run unit-test-checks.yml \
+            --repo "${{ github.repository }}" \
+            --ref main \
+            -f pr_number="$PR_NUMBER"
+
+          echo "Unit test checks triggered for PR #$PR_NUMBER"
 
 
       - name: Upload generated tests
