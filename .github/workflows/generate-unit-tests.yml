@@ -46,6 +46,17 @@ jobs:
             > "$RUNNER_TEMP/pr.diff"
 
           echo "PR diff downloaded"
+      
+      - name: Verify PR diff
+        run: |
+          if [ ! -s "$RUNNER_TEMP/pr.diff" ]; then
+            echo "ERROR: PR diff is empty or missing"
+            exit 1
+          fi
+
+          echo "PR diff exists"
+          echo "Diff size: $(wc -c < "$RUNNER_TEMP/pr.diff") bytes"
+
 
 
       - name: Generate unit tests with Claude
@@ -61,6 +72,16 @@ jobs:
             }
           
           prompt: |
+            
+            First read the PR diff at the path provided below:
+            ${{ runner.temp }}/pr.diff
+
+            Use this diff to identify the functions added or modified
+            by the pull request.
+
+            Generate tests only for the changed functionality.
+            Read surrounding source code when necessary.
+
             You are an AI unit-test generation agent.
 
             Analyze the code in the currently checked-out pull request.
