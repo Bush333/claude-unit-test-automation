@@ -59,3 +59,11 @@ def apply_coupon(total, coupon_code):
         return max(Decimal("0"), total - coupons[coupon_code])
 
     return round(total * (1 - coupons[coupon_code]), 2)
+def calculate_discount(total, discount_percent):
+    if total < 0:
+        raise ValueError("Total cannot be negative")
+
+    if not 0 <= discount_percent <= 100:
+        raise ValueError("Discount must be between 0 and 100")
+
+    return round(total * (1 - discount_percent / 100), 2)
