@@ -73,6 +73,13 @@ jobs:
             ls -lh output.txt
             file output.txt
           fi
+          
+      - name: Clean Claude execution output
+        run: |
+          if [ -f output.txt ] && [ ! -L output.txt ]; then
+            echo "Removing temporary Claude output"
+            rm -- output.txt
+          fi
 
 
       - name: Validate modified files
