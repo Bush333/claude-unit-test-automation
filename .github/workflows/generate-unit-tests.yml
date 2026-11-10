@@ -61,6 +61,19 @@ jobs:
 
           max_turns: "10"
           allowed_tools: "Read,Glob,Grep,Write,Edit"
+          
+      - name: Inspect unexpected files
+        if: always()
+        run: |
+          echo "Changed and untracked files:"
+          git status --short --untracked-files=all
+
+          echo "Inspecting output.txt metadata:"
+          if [ -f output.txt ]; then
+            ls -lh output.txt
+            file output.txt
+          fi
+
 
       - name: Validate modified files
         run: |
