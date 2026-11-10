@@ -19,6 +19,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: read
+      actions: write
 
     steps:
       - name: Checkout PR code
