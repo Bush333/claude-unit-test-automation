@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Test Claude authentication
-        uses: anthropics/claude-code-base-action@v1
+        uses: anthropics/claude-code-base-action@beta
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
