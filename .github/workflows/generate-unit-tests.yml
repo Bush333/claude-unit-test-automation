@@ -8,10 +8,13 @@ on:
         description: "Pull request number"
         required: true
         type: string
-
+    
 jobs:
   generate-tests:
     runs-on: ubuntu-24.04
+
+    env:
+      PYTHONDONTWRITEBYTECODE: "1"
 
     permissions:
       contents: write
