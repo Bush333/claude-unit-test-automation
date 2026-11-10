@@ -107,6 +107,105 @@ jobs:
       - name: Run unit tests
         run: |
           python -m pytest tests/unit-tests/ -v
+      
+      - name: Commit generated tests to PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          REPO: ${{ github.repository }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+
+          def git(*args):
+              return subprocess.check_output(
+                  ["git", *args], text=True
+              ).strip()
+
+          pr_number = os.environ["PR_NUMBER"]
+
+          if not pr_number.isdecimal() or int(pr_number) < 1:
+              sys.exit("Invalid PR number")
+
+          pr = json.loads(subprocess.check_output(
+              [
+                  "gh", "api",
+                  f"repos/{os.environ['REPO']}/pulls/{pr_number}"
+              ],
+              text=True
+          ))
+
+          if pr["state"] != "open":
+              sys.exit("PR is not open")
+
+          if pr["head"]["repo"]["full_name"] != os.environ["REPO"]:
+              sys.exit("External fork PRs are not supported")
+
+          branch = pr["head"]["ref"]
+          expected_sha = pr["head"]["sha"]
+
+          if git("rev-parse", "HEAD") != expected_sha:
+              sys.exit("PR changed during test generation")
+
+          changes = subprocess.check_output(
+              ["git", "status", "--porcelain", "-uall"],
+              text=True
+          ).splitlines()
+
+          for line in changes:
+              path = line[3:]
+              if not path.startswith("tests/unit-tests/"):
+                  sys.exit(f"Unauthorized modification: {path}")
+
+          subprocess.run(
+              ["git", "add", "--", "tests/unit-tests/"],
+              check=True
+          )
+
+          staged = git("diff", "--cached", "--name-only")
+
+          if not staged:
+              print("No new unit tests to commit")
+              sys.exit(0)
+
+          subprocess.run(
+              ["git", "config", "user.name", "github-actions[bot]"],
+              check=True
+          )
+          subprocess.run(
+              [
+                  "git", "config", "user.email",
+                  "41898282+github-actions[bot]@users.noreply.github.com"
+              ],
+              check=True
+          )
+
+          subprocess.run(
+              ["git", "commit", "-m", "test: add AI-generated unit tests"],
+              check=True
+          )
+
+          subprocess.run(
+              [
+                  "git", "-c",
+                  f"http.https://github.com/.extraheader=AUTHORIZATION: basic "
+                  + __import__("base64").b64encode(
+                      f"x-access-token:{os.environ['GH_TOKEN']}".encode()
+                  ).decode(),
+                  "push", "origin",
+                  f"HEAD:refs/heads/{branch}",
+                  "--force-with-lease=refs/heads/"
+                  + branch + ":" + expected_sha
+              ],
+              check=True
+          )
+
+          print(f"Updated PR #{pr_number}")
+          PY
+
 
       - name: Upload generated tests
         if: always()
