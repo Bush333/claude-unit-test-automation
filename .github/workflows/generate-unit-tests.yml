@@ -37,6 +37,12 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           model: "claude-sonnet-5"
+          settings: |
+            {
+              "permissions": {
+                "defaultMode": "acceptEdits"
+              }
+            }
           prompt: |
             Analyze src/shopping_cart.py.
 
@@ -49,6 +55,9 @@ jobs:
             - Do not modify workflow files
             - Do not commit or push
             - Ensure tests can run with pytest
+            - Do not create output.txt, logs, summaries, or temporary
+              files inside the repository.
+            - Only create files under tests/unit-tests/.
 
           max_turns: "10"
           allowed_tools: "Read,Glob,Grep,Write,Edit"
