@@ -1,4 +1,4 @@
-
+# CI notification verification
 from decimal import Decimal
 
 
@@ -40,7 +40,31 @@ def calculate_total(items, discount_percent=0, tax_percent=0):
 
     return round(discounted_total + tax, 2)
 
+def calculate_shipping(order_total, express=False):
+    """
+    Calculate shipping cost.
 
+    Standard shipping:
+      - Free for orders >= 100
+      - 10 for orders below 100
+
+    Express shipping:
+      - 25 for all orders
+
+    Negative order totals are invalid.
+    """
+    order_total = Decimal(str(order_total))
+
+    if order_total < 0:
+        raise ValueError("Order total cannot be negative")
+
+    if express:
+        return Decimal("25.00")
+
+    if order_total >= 100:
+        return Decimal("0.00")
+
+    return Decimal("10.00")
 def apply_coupon(total, coupon_code):
     """Apply a coupon to the cart total."""
     coupons = {
@@ -67,3 +91,14 @@ def calculate_discount(total, discount_percent):
         raise ValueError("Discount must be between 0 and 100")
 
     return round(total * (1 - discount_percent / 100), 2)
+
+def calculate_tax(subtotal, tax_rate):
+    """Calculate tax amount for a subtotal and percentage rate."""
+    if subtotal < 0:
+        raise ValueError("Subtotal cannot be negative")
+
+    if not 0 <= tax_rate <= 100:
+        raise ValueError("Tax rate must be between 0 and 100")
+
+    return round(subtotal * tax_rate / 100, 2)
+

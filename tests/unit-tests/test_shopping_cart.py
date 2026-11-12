@@ -8,6 +8,7 @@ from decimal import Decimal
 import pytest
 
 from src.shopping_cart import calculate_shipping
+from src.shopping_cart import calculate_tax
 
 
 class TestCalculateShippingStandard:
@@ -113,3 +114,39 @@ def test_calculate_discount_percent_over_100_raises():
 def test_calculate_discount_boundary_percent_values():
     assert calculate_discount(200, 0) == 200.0
     assert calculate_discount(200, 100) == 0.0
+
+
+class TestCalculateTax:
+    def test_normal_case(self):
+        assert calculate_tax(100, 10) == 10.0
+
+    def test_zero_tax_rate(self):
+        assert calculate_tax(100, 0) == 0.0
+
+    def test_full_tax_rate(self):
+        assert calculate_tax(100, 100) == 100.0
+
+    def test_zero_subtotal(self):
+        assert calculate_tax(0, 50) == 0.0
+
+    def test_rounding(self):
+        assert calculate_tax(99.99, 33) == round(99.99 * 33 / 100, 2)
+
+    def test_float_subtotal(self):
+        assert calculate_tax(49.5, 20) == round(49.5 * 20 / 100, 2)
+
+    def test_boundary_tax_rate_values(self):
+        assert calculate_tax(200, 0) == 0.0
+        assert calculate_tax(200, 100) == 200.0
+
+    def test_negative_subtotal_raises(self):
+        with pytest.raises(ValueError, match="Subtotal cannot be negative"):
+            calculate_tax(-1, 10)
+
+    def test_negative_tax_rate_raises(self):
+        with pytest.raises(ValueError, match="Tax rate must be between 0 and 100"):
+            calculate_tax(100, -1)
+
+    def test_tax_rate_over_100_raises(self):
+        with pytest.raises(ValueError, match="Tax rate must be between 0 and 100"):
+            calculate_tax(100, 101)
