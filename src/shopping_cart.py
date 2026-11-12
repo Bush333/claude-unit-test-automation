@@ -112,5 +112,32 @@ def apply_store_credit(total, credit):
 
     return round(max(total - credit, 0), 2)
 
+def calculate_bogo_discount(unit_price, quantity, buy_qty=2, free_qty=1):
+    """
+    Calculate discount for Buy X, Get Y Free offers.
+
+    Example:
+    Buy 2, Get 1 Free
+    Unit price = 100
+    Quantity = 6
+    Discount = 200
+    """
+    if unit_price < 0:
+        raise ValueError("Unit price cannot be negative")
+
+    if not isinstance(quantity, int) or isinstance(quantity, bool) or quantity < 0:
+        raise ValueError("Quantity must be a non-negative integer")
+
+    if not isinstance(buy_qty, int) or isinstance(buy_qty, bool) or buy_qty <= 0:
+        raise ValueError("Buy quantity must be a positive integer")
+
+    if not isinstance(free_qty, int) or isinstance(free_qty, bool) or free_qty <= 0:
+        raise ValueError("Free quantity must be a positive integer")
+
+    group_size = buy_qty + free_qty
+    free_items = (quantity // group_size) * free_qty
+
+    return round(free_items * unit_price, 2)
+
 
 
