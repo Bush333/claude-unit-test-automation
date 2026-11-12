@@ -4,6 +4,7 @@ name: Unit Test Checks
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+
   workflow_dispatch:
     inputs:
       pr_number:
@@ -41,3 +42,77 @@ jobs:
         run: |
           python -m pytest tests/unit-tests/ -v \
             -p no:cacheprovider
+
+  notify-slack:
+    name: Notify Slack
+    needs: pytest
+    if: ${{ always() && (needs.pytest.result == 'success' || needs.pytest.result == 'failure') }}
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Send test results to Slack
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ vars.SLACK_CHANNEL_ID }}
+          RESULT: ${{ needs.pytest.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.pull_request.number }}
+          REPOSITORY: ${{ github.repository }}
+
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          result = os.environ["RESULT"]
+
+          if result == "success":
+              message = "ut generated, all tests passed"
+          else:
+              message = "ut generated, tests failing , please check"
+
+          pr_number = os.environ.get("PR_NUMBER", "")
+          repository = os.environ["REPOSITORY"]
+
+          if pr_number:
+              message += (
+                  f"\nPR: https://github.com/"
+                  f"{repository}/pull/{pr_number}"
+              )
+
+          message += f"\nTest results: {os.environ['RUN_URL']}"
+
+          payload = json.dumps({
+              "channel": os.environ["SLACK_CHANNEL_ID"],
+              "text": message
+          }).encode("utf-8")
+
+          request = urllib.request.Request(
+              "https://slack.com/api/chat.postMessage",
+              data=payload,
+              headers={
+                  "Authorization": (
+                      "Bearer " + os.environ["SLACK_BOT_TOKEN"]
+                  ),
+                  "Content-Type": "application/json; charset=utf-8"
+              },
+              method="POST"
+          )
+
+          with urllib.request.urlopen(
+              request, timeout=15
+          ) as response:
+              data = json.load(response)
+
+          if not data.get("ok"):
+              raise RuntimeError(
+                  "Slack API error: "
+                  + data.get("error", "unknown")
+              )
+
+          print("Slack notification sent successfully")
+          PY
