@@ -9,6 +9,7 @@ import pytest
 
 from src.shopping_cart import calculate_shipping
 from src.shopping_cart import calculate_tax
+from src.shopping_cart import apply_store_credit
 
 
 class TestCalculateShippingStandard:
@@ -150,3 +151,44 @@ class TestCalculateTax:
     def test_tax_rate_over_100_raises(self):
         with pytest.raises(ValueError, match="Tax rate must be between 0 and 100"):
             calculate_tax(100, 101)
+
+
+class TestApplyStoreCredit:
+    def test_normal_case_credit_less_than_total(self):
+        assert apply_store_credit(100, 30) == 70.0
+
+    def test_credit_equal_to_total_results_in_zero(self):
+        assert apply_store_credit(100, 100) == 0.0
+
+    def test_credit_greater_than_total_floors_at_zero(self):
+        assert apply_store_credit(50, 100) == 0.0
+
+    def test_zero_credit_returns_total_unchanged(self):
+        assert apply_store_credit(100, 0) == 100.0
+
+    def test_zero_total_with_credit_returns_zero(self):
+        assert apply_store_credit(0, 50) == 0.0
+
+    def test_zero_total_and_zero_credit(self):
+        assert apply_store_credit(0, 0) == 0.0
+
+    def test_rounding_behavior(self):
+        assert apply_store_credit(99.995, 10) == round(max(99.995 - 10, 0), 2)
+
+    def test_float_inputs(self):
+        assert apply_store_credit(49.5, 20.25) == round(49.5 - 20.25, 2)
+
+    def test_negative_total_raises_value_error(self):
+        with pytest.raises(ValueError, match="Total cannot be negative"):
+            apply_store_credit(-1, 10)
+
+    def test_negative_credit_raises_value_error(self):
+        with pytest.raises(ValueError, match="Store credit cannot be negative"):
+            apply_store_credit(100, -5)
+
+    def test_both_negative_raises_total_error_first(self):
+        with pytest.raises(ValueError, match="Total cannot be negative"):
+            apply_store_credit(-10, -5)
+
+    def test_large_credit_still_floors_at_zero(self):
+        assert apply_store_credit(10, 1000) == 0.0
