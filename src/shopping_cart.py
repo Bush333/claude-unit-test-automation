@@ -102,4 +102,15 @@ def calculate_tax(subtotal, tax_rate):
 
     return round(subtotal * tax_rate / 100, 2)
 
+def apply_store_credit(total, credit):
+    """Apply store credit without allowing a negative payable amount."""
+    if total < 0:
+        raise ValueError("Total cannot be negative")
+
+    if credit < 0:
+        raise ValueError("Store credit cannot be negative")
+
+    return round(max(total - credit, 0), 2)
+
+
 
