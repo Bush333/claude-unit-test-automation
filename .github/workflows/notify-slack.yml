@@ -31,9 +31,13 @@ jobs:
           import urllib.request
 
           # Only notify for PR test runs.
-          if os.environ["EVENT_NAME"] != "pull_request":
-              print("Skipping non-PR run")
-              raise SystemExit(0)
+          
+          # Notify for both automatic PR checks and
+          # tests dispatched by the Claude generator.
+          if os.environ["EVENT_NAME"] not in ("pull_request", "workflow_dispatch"):
+            print("Skipping unrelated event")
+            raise SystemExit(0)
+
 
           result = os.environ["RESULT"]
 
