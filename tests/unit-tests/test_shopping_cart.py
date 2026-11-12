@@ -10,6 +10,11 @@ import pytest
 from src.shopping_cart import calculate_shipping
 from src.shopping_cart import calculate_tax
 from src.shopping_cart import apply_store_credit
+from src.shopping_cart import calculate_bulk_discount
+
+def test_slack_failure_notification():
+    """Temporary test to verify Slack failure notifications."""
+    assert False, "Intentional failure to test Slack notification"
 
 
 class TestCalculateShippingStandard:
@@ -192,3 +197,58 @@ class TestApplyStoreCredit:
 
     def test_large_credit_still_floors_at_zero(self):
         assert apply_store_credit(10, 1000) == 0.0
+
+
+class TestCalculateBulkDiscount:
+    def test_no_discount_for_one_item(self):
+        assert calculate_bulk_discount(10, 1) == 10.0
+
+    def test_no_discount_just_below_five_items(self):
+        assert calculate_bulk_discount(10, 4) == 40.0
+
+    def test_five_percent_discount_at_lower_boundary(self):
+        assert calculate_bulk_discount(10, 5) == round(10 * 5 * 0.95, 2)
+
+    def test_five_percent_discount_just_below_ten_items(self):
+        assert calculate_bulk_discount(10, 9) == round(10 * 9 * 0.95, 2)
+
+    def test_ten_percent_discount_at_lower_boundary(self):
+        assert calculate_bulk_discount(10, 10) == round(10 * 10 * 0.90, 2)
+
+    def test_ten_percent_discount_just_below_twenty_items(self):
+        assert calculate_bulk_discount(10, 19) == round(10 * 19 * 0.90, 2)
+
+    def test_fifteen_percent_discount_at_lower_boundary(self):
+        assert calculate_bulk_discount(10, 20) == round(10 * 20 * 0.85, 2)
+
+    def test_fifteen_percent_discount_well_above_boundary(self):
+        assert calculate_bulk_discount(10, 100) == round(10 * 100 * 0.85, 2)
+
+    def test_zero_quantity_returns_zero(self):
+        assert calculate_bulk_discount(10, 0) == 0.0
+
+    def test_zero_unit_price_returns_zero_regardless_of_quantity(self):
+        assert calculate_bulk_discount(0, 25) == 0.0
+
+    def test_float_unit_price_rounding(self):
+        assert calculate_bulk_discount(9.99, 5) == round(9.99 * 5 * 0.95, 2)
+
+    def test_negative_unit_price_raises_value_error(self):
+        with pytest.raises(ValueError, match="Unit price cannot be negative"):
+            calculate_bulk_discount(-1, 5)
+
+    def test_negative_quantity_raises_value_error(self):
+        with pytest.raises(ValueError, match="Quantity must be a non-negative integer"):
+            calculate_bulk_discount(10, -1)
+
+    def test_non_integer_quantity_raises_value_error(self):
+        with pytest.raises(ValueError, match="Quantity must be a non-negative integer"):
+            calculate_bulk_discount(10, 5.5)
+
+    def test_boolean_quantity_raises_value_error(self):
+        with pytest.raises(ValueError, match="Quantity must be a non-negative integer"):
+            calculate_bulk_discount(10, True)
+
+    def test_string_quantity_raises_value_error(self):
+        with pytest.raises(ValueError, match="Quantity must be a non-negative integer"):
+            calculate_bulk_discount(10, "5")

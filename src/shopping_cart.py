@@ -139,5 +139,33 @@ def calculate_bogo_discount(unit_price, quantity, buy_qty=2, free_qty=1):
 
     return round(free_items * unit_price, 2)
 
+def calculate_bulk_discount(unit_price, quantity):
+    """
+    Calculate the final price with a quantity-based discount.
+
+    Discount rules:
+    - 1–4 items: No discount
+    - 5–9 items: 5% discount
+    - 10–19 items: 10% discount
+    - 20+ items: 15% discount
+    """
+    if unit_price < 0:
+        raise ValueError("Unit price cannot be negative")
+
+    if not isinstance(quantity, int) or isinstance(quantity, bool) or quantity < 0:
+        raise ValueError("Quantity must be a non-negative integer")
+
+    subtotal = unit_price * quantity
+
+    if quantity >= 20:
+        discount = 0.15
+    elif quantity >= 10:
+        discount = 0.10
+    elif quantity >= 5:
+        discount = 0.05
+    else:
+        discount = 0
+
+    return round(subtotal * (1 - discount), 2)
 
 
