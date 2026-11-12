@@ -12,6 +12,10 @@ from src.shopping_cart import calculate_tax
 from src.shopping_cart import apply_store_credit
 from src.shopping_cart import calculate_bulk_discount
 
+def test_slack_failure_notification():
+    """Temporary test to verify Slack failure notifications."""
+    assert False, "Intentional failure to test Slack notification"
+
 
 class TestCalculateShippingStandard:
     def test_order_total_above_threshold_is_free(self):
