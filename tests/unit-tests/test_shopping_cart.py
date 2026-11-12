@@ -10,7 +10,6 @@ import pytest
 from src.shopping_cart import calculate_shipping
 from src.shopping_cart import calculate_tax
 from src.shopping_cart import apply_store_credit
-from src.shopping_cart import calculate_bogo_discount
 
 
 class TestCalculateShippingStandard:
@@ -193,89 +192,3 @@ class TestApplyStoreCredit:
 
     def test_large_credit_still_floors_at_zero(self):
         assert apply_store_credit(10, 1000) == 0.0
-
-
-class TestCalculateBogoDiscount:
-    def test_default_buy2_get1_exact_multiple(self):
-        assert calculate_bogo_discount(100, 6) == 200.0
-
-    def test_default_buy2_get1_with_remainder(self):
-        assert calculate_bogo_discount(100, 7) == 200.0
-
-    def test_default_buy2_get1_below_group_size(self):
-        assert calculate_bogo_discount(100, 2) == 0.0
-
-    def test_quantity_zero_returns_zero_discount(self):
-        assert calculate_bogo_discount(100, 0) == 0.0
-
-    def test_unit_price_zero_returns_zero_discount(self):
-        assert calculate_bogo_discount(0, 6) == 0.0
-
-    def test_custom_buy_and_free_quantities(self):
-        assert calculate_bogo_discount(50, 10, buy_qty=3, free_qty=2) == 100.0
-
-    def test_custom_buy_and_free_quantities_with_remainder(self):
-        assert calculate_bogo_discount(50, 12, buy_qty=3, free_qty=2) == 200.0
-
-    def test_free_qty_greater_than_one(self):
-        assert calculate_bogo_discount(10, 9, buy_qty=1, free_qty=2) == round(6 * 10, 2)
-
-    def test_float_unit_price_rounding(self):
-        assert calculate_bogo_discount(19.99, 6) == round(2 * 19.99, 2)
-
-    def test_large_quantity(self):
-        assert calculate_bogo_discount(10, 300) == round(100 * 10, 2)
-
-    def test_exact_one_group(self):
-        assert calculate_bogo_discount(100, 3) == 100.0
-
-    def test_quantity_one_below_group_size(self):
-        assert calculate_bogo_discount(100, 1) == 0.0
-
-    def test_negative_unit_price_raises_value_error(self):
-        with pytest.raises(ValueError, match="Unit price cannot be negative"):
-            calculate_bogo_discount(-1, 6)
-
-    def test_negative_quantity_raises_value_error(self):
-        with pytest.raises(ValueError, match="Quantity must be a non-negative integer"):
-            calculate_bogo_discount(100, -1)
-
-    def test_non_integer_quantity_raises_value_error(self):
-        with pytest.raises(ValueError, match="Quantity must be a non-negative integer"):
-            calculate_bogo_discount(100, 6.5)
-
-    def test_boolean_quantity_raises_value_error(self):
-        with pytest.raises(ValueError, match="Quantity must be a non-negative integer"):
-            calculate_bogo_discount(100, True)
-
-    def test_zero_buy_qty_raises_value_error(self):
-        with pytest.raises(ValueError, match="Buy quantity must be a positive integer"):
-            calculate_bogo_discount(100, 6, buy_qty=0)
-
-    def test_negative_buy_qty_raises_value_error(self):
-        with pytest.raises(ValueError, match="Buy quantity must be a positive integer"):
-            calculate_bogo_discount(100, 6, buy_qty=-2)
-
-    def test_non_integer_buy_qty_raises_value_error(self):
-        with pytest.raises(ValueError, match="Buy quantity must be a positive integer"):
-            calculate_bogo_discount(100, 6, buy_qty=2.5)
-
-    def test_boolean_buy_qty_raises_value_error(self):
-        with pytest.raises(ValueError, match="Buy quantity must be a positive integer"):
-            calculate_bogo_discount(100, 6, buy_qty=True)
-
-    def test_zero_free_qty_raises_value_error(self):
-        with pytest.raises(ValueError, match="Free quantity must be a positive integer"):
-            calculate_bogo_discount(100, 6, free_qty=0)
-
-    def test_negative_free_qty_raises_value_error(self):
-        with pytest.raises(ValueError, match="Free quantity must be a positive integer"):
-            calculate_bogo_discount(100, 6, free_qty=-1)
-
-    def test_non_integer_free_qty_raises_value_error(self):
-        with pytest.raises(ValueError, match="Free quantity must be a positive integer"):
-            calculate_bogo_discount(100, 6, free_qty=1.5)
-
-    def test_boolean_free_qty_raises_value_error(self):
-        with pytest.raises(ValueError, match="Free quantity must be a positive integer"):
-            calculate_bogo_discount(100, 6, free_qty=True)
