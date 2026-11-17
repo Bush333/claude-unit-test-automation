@@ -90,7 +90,12 @@ def calculate_discount(total, discount_percent):
     if not 0 <= discount_percent <= 100:
         raise ValueError("Discount must be between 0 and 100")
 
-    return round(total * (1 - discount_percent / 100), 2)
+    if isinstance(total, Decimal):
+        factor = 1 - Decimal(str(discount_percent)) / 100
+    else:
+        factor = 1 - discount_percent / 100
+
+    return round(total * factor, 2)
 
 def calculate_tax(subtotal, tax_rate):
     """Calculate tax amount for a subtotal and percentage rate."""

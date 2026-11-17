@@ -192,3 +192,8 @@ class TestApplyStoreCredit:
 
     def test_large_credit_still_floors_at_zero(self):
         assert apply_store_credit(10, 1000) == 0.0
+
+
+def test_calculate_discount_accepts_decimal_total():
+    assert calculate_discount(Decimal("100.00"), 15.5) == Decimal("84.50")
+    assert calculate_discount(Decimal("80"), 25) == Decimal("60.00")
