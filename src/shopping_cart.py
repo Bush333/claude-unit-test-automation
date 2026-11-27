@@ -61,7 +61,7 @@ def calculate_shipping(order_total, express=False):
     if express:
         return Decimal("25.00")
 
-    if order_total >= 100:
+    if order_total > 100:
         return Decimal("0.00")
 
     return Decimal("10.00")
